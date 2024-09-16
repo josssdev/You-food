@@ -1,9 +1,9 @@
-const ingredientForm = document.getElementById('ingredient-form');
 const ingredientInput = document.getElementById('ingredient-input');
 const ingredientList = document.getElementById('ingredient-list');
 const generateMenuButton = document.getElementById('generate-menu');
+const loadingMessage = document.getElementById('loading-message');
 const menuSuggestions = document.getElementById('menu-suggestions');
-const menuList = document.getElementById('menu-list');
+const menuOutput = document.getElementById('menu-output');
 
 let ingredients = [];
 
@@ -19,38 +19,48 @@ document.getElementById('add-ingredient').addEventListener('click', () => {
   }
 });
 
-// Generar menú basado en los ingredientes
-generateMenuButton.addEventListener('click', () => {
-  const possibleMenus = getPossibleMenus(ingredients);
-  menuList.innerHTML = '';
+// Función para generar recetas usando la API de OpenAI
+async function generateMenuWithAI(ingredients) {
+  const apiKey = 'sk-svcacct-e3a7DR4ayBRk6emguvNUd8Io2IUC5aGzbr2CqWyqLJPnuJ-YdafMjWj6Z_EWkXeT3BlbkFJuCdOU16v7UkMt92rUNk4gKaVvDLFcc08nHmxvWvlIWC7IdltA7BAIVsSO9zpYUwA';  // Inserta tu API Key aquí
 
-  if (possibleMenus.length > 0) {
-    possibleMenus.forEach(menu => {
-      const li = document.createElement('li');
-      li.textContent = menu;
-      menuList.appendChild(li);
-    });
-    menuSuggestions.style.display = 'block';
-  } else {
-    const li = document.createElement('li');
-    li.textContent = 'No se encontraron recetas con los ingredientes disponibles.';
-    menuList.appendChild(li);
-    menuSuggestions.style.display = 'block';
-  }
-});
+  const prompt = `Con los siguientes ingredientes: ${ingredients.join(', ')}, sugiéreme una receta creativa que pueda hacer.`;
 
-// Función que devuelve recetas posibles basadas en los ingredientes
-function getPossibleMenus(ingredients) {
-  const recipes = [
-    { name: 'Ensalada de frutas', requiredIngredients: ['manzana', 'banana', 'naranja'] },
-    { name: 'Omelette', requiredIngredients: ['huevo', 'queso', 'jamón'] },
-    { name: 'Sándwich', requiredIngredients: ['pan', 'jamón', 'queso', 'lechuga'] },
-    { name: 'Pasta al pesto', requiredIngredients: ['pasta', 'albahaca', 'ajo', 'aceite'] },
-  ];
+  const response = await fetch('https://api.openai.com/v1/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: 'gpt-3.5-turbo',
+      messages: [{"role": "system", "content": "Eres un chef creativo."}, {"role": "user", "content": prompt}],
+      max_tokens: 150
+    })
+  });
 
-  return recipes
-    .filter(recipe =>
-      recipe.requiredIngredients.every(ingredient => ingredients.includes(ingredient))
-    )
-    .map(recipe => recipe.name);
+  const data = await response.json();
+  return data.choices[0].message.content;
 }
+
+// Generar menú basado en IA
+generateMenuButton.addEventListener('click', async () => {
+  if (ingredients.length === 0) {
+    alert('Por favor, ingresa al menos un ingrediente.');
+    return;
+  }
+
+  // Mostrar mensaje de carga
+  loadingMessage.style.display = 'block';
+
+  try {
+    const menu = await generateMenuWithAI(ingredients);
+    menuOutput.textContent = menu;
+    menuSuggestions.style.display = 'block';
+  } catch (error) {
+    menuOutput.textContent = 'Ocurrió un error al generar el menú. Por favor, inténtalo nuevamente.';
+    console.error('Error al generar el menú:', error);
+  }
+
+  // Ocultar mensaje de carga
+  loadingMessage.style.display = 'none';
+});
