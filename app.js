@@ -21,25 +21,37 @@ document.getElementById('add-ingredient').addEventListener('click', () => {
 
 // Función para generar recetas usando la API de OpenAI
 async function generateMenuWithAI(ingredients) {
-  const apiKey = 'sk-svcacct-e3a7DR4ayBRk6emguvNUd8Io2IUC5aGzbr2CqWyqLJPnuJ-YdafMjWj6Z_EWkXeT3BlbkFJuCdOU16v7UkMt92rUNk4gKaVvDLFcc08nHmxvWvlIWC7IdltA7BAIVsSO9zpYUwA';  // Inserta tu API Key aquí
+  const apiKey = 'sk-svcacct-e3a7DR4ayBRk6emguvNUd8Io2IUC5aGzbr2CqWyqLJPnuJ-YdafMjWj6Z_EWkXeT3BlbkFJuCdOU16v7UkMt92rUNk4gKaVvDLFcc08nHmxvWvlIWC7IdltA7BAIVsSO9zpYUwA';  // Asegúrate de reemplazar esto por tu clave API
 
   const prompt = `Con los siguientes ingredientes: ${ingredients.join(', ')}, sugiéreme una receta creativa que pueda hacer.`;
 
-  const response = await fetch('https://api.openai.com/v1/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: 'gpt-3.5-turbo',
-      messages: [{"role": "system", "content": "Eres un chef creativo."}, {"role": "user", "content": prompt}],
-      max_tokens: 150
-    })
-  });
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo', // Puedes cambiar esto a 'gpt-4' si tienes acceso
+        messages: [
+          {"role": "system", "content": "Eres un chef creativo que sugiere recetas basadas en ingredientes."},
+          {"role": "user", "content": prompt}
+        ],
+        max_tokens: 150
+      })
+    });
 
-  const data = await response.json();
-  return data.choices[0].message.content;
+    if (!response.ok) {
+      throw new Error(`Error de la API: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('Error al conectarse a la API:', error);
+    throw error;
+  }
 }
 
 // Generar menú basado en IA
@@ -58,7 +70,6 @@ generateMenuButton.addEventListener('click', async () => {
     menuSuggestions.style.display = 'block';
   } catch (error) {
     menuOutput.textContent = 'Ocurrió un error al generar el menú. Por favor, inténtalo nuevamente.';
-    console.error('Error al generar el menú:', error);
   }
 
   // Ocultar mensaje de carga
