@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¿Qué comer hoy?</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>¿Qué comer hoy?</h1>
+    <form id="ingredient-form">
+      <input type="text" id="ingredient-input" placeholder="Ingresa un ingrediente">
+      <button type="button" id="add-ingredient">Agregar ingrediente</button>
+    </form>
+
+    <ul id="ingredient-list"></ul>
+
+    <button id="generate-menu">Generar menú con IA</button>
+    
+    <div id="loading-message" style="display:none;">Generando menú, por favor espera...</div>
+    
+    <div id="menu-suggestions">
+      <h2>Menú sugerido por la IA:</h2>
+      <p id="menu-output"></p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
